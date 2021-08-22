@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>ToDo</title>
+</head>
+<body>
+    <div id="container">
+        <div class="row">
+            <div class="col s12">
+                <div id="main" class="card">
+                    <div class="card-content">
+                        <span class="card-title">Task List</span>
+                        <div class="row">
+                            <form id="task-form">
+                                <div class="col s12 input-field">
+                                    <input type="text" name="task" id="task">
+                                    <label for="task">New Task</label>
+                                </div>
+                                <input type="submit" value="Add Task" class="btn">
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <div class="row">
+                            <div class="col s12 input-field">
+                                <input type="text" name="filter" id="filter">
+                                <label for="filter">Filter Tasks</label>
+                            </div>
+
+                            <ul class="collection"></ul>
+                            <a href="" class="clear-task btn black">Clear Tasks</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        //Define UI vars
+        let form = document.querySelector('#task-form');
+        let taskList = document.querySelector('.collection');
+        let clearTasks = document.querySelector('.clear-task');
+        let filter = document.querySelector('#filter');
+        let taskInput = document.querySelector('#task');
+        //Invoke all events
+        loadAllEvents();
+
+        //All Events function
+        function loadAllEvents(){
+
+            document.addEventListener('DOMContentLoaded', getTasks);
+            //Add task Event
+            form.addEventListener('submit', addTask);
+
+            //Remove task
+            taskList.addEventListener('click', removeTask);
+
+            //Remove all tasks
+            clearTasks.addEventListener('click', removeAllTasks);
+
+            //Filter task
+            filter.addEventListener('keyup', filterTasks);
+        }
+
+        //Add Task
+        function addTask(event){
+            event.preventDefault();
+
+            if(taskInput.value === ''){
+                alert('Please filll  the Task feild');
+            }
+
+            let li = document.createElement('li');
+            li.className = 'collection-item';
+            li.appendChild(document.createTextNode(taskInput.value));
+
+            let link = document.createElement('a');
+            link.className = 'delete-item secondary-content';
+            link.innerHTML = '<i class="fa fa-remove"><i/>';
+
+            li.appendChild(link);
+            taskList.appendChild(li);
+
+            storeTaskInLS(taskInput.value);
+
+            taskInput.value = '';
+        }
+
+        //Remove Task
+        function removeTask(event){
+            if(event.target.parentElement.classList.contains('delete-item')){
+                if(confirm('Are you sure?')){
+                    event.target.parentElement.parentElement.remove();
+                    removeTaskFromLs(event.target.parentElement.parentElement);
+                }
+            }
+        }
+
+        //Remove all tasks
+        function removeAllTasks(event){
+            event.preventDefault();
+
+            //Slower way
+            // taskList.innerHTML = '';
+
+
+            //Faster way
+            while(taskList.firstChild){
+                taskList.removeChild(taskList.firstChild);
+            }
+
+            ClearLS();
+        }
+
+        //Filter Tasks
+        function filterTasks(){
+            let text = filter.value.toLowerCase();
+            document.querySelectorAll('.collection-item').forEach((task) => {
+
+                let content = task.textContent.toLowerCase();
+                if(content.indexOf(text) != -1){
+                    task.style.display = 'block';
+                }else{
+                    task.style.display = 'none';
+                }
+            });
+        }
+
+        //Store task in Local Storage (LS)
+        function storeTaskInLS(taskItem){
+            let tasks;
+            if(localStorage.getItem('tasks') === null){
+                tasks = [];
+            }else{
+                tasks = JSON.parse(localStorage.getItem('tasks'));
+            }
+
+            tasks.push(taskItem);
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        //Get tasks from Local Storage (LS)
+        function getTasks(){
+            let tasks;
+            if(localStorage.getItem('tasks') === null){
+                tasks = [];
+            }else{
+                tasks = JSON.parse(localStorage.getItem('tasks'));
+            }
+
+            tasks.forEach((task) => {
+                let li = document.createElement('li');
+                li.className = 'collection-item';
+                li.appendChild(document.createTextNode(task));
+
+                let link = document.createElement('a');
+                link.className = 'delete-item secondary-content';
+                link.innerHTML = '<i class="fa fa-remove"><i/>';
+
+                li.appendChild(link);
+                taskList.appendChild(li);
+            });
+        }
+
+        //Remove Task from Local Storage (LS)
+        function removeTaskFromLs(taskItem){
+            let tasks;
+            if(localStorage.getItem('tasks') === null){
+                tasks = [];
+            }else{
+                tasks = JSON.parse(localStorage.getItem('tasks'));
+            }
+
+            tasks.forEach((task, index) => {
+                if(taskItem.textContent === task){
+                    tasks.splice(index, 1);
+                }
+            });
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        //Clear Local Storage (LS)
+        function ClearLS(){
+            localStorage.clear();
+        }
+    </script>
+
+</body>
+</html>
